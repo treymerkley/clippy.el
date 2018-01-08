@@ -1,4 +1,4 @@
-;;; clippy.el --- Show tooltip with function documentation at point
+;;; navi.el --- Show tooltip with function documentation at point
 
 ;; Copyright (C) 2013 Matus Goljer
 
@@ -29,11 +29,11 @@
 
 ;;; Commentary:
 
-;; This library implements rendering of pop-up box with "Clippy, the
-;; paper clip".  You can make him say various things by calling
-;; `clippy-say' function.  To hide the pop-up, simply invoke any
-;; command (move forward/backward, type, `C-g` etc., any event is
-;; recognized).
+;; This library implements rendering of pop-up box with Navi, the
+;; fairy from Legend of Zelda: Ocarina of Time.  You can make him
+;; say various things by calling `clippy-say' function.  To hide the
+;; pop-up, simply invoke any command (move forward/backward,
+;; type, `C-g` etc., any event is recognized).
 
 ;; As inspiration, two functions are provided:
 ;; `clippy-describe-function' and `clippy-describe-variable'.  Bind
@@ -46,59 +46,55 @@
 
 (require 'pos-tip)
 
-(defgroup clippy ()
-  "Clippy, the helpful paper clip.")
+(defgroup navi ()
+  "Navi, the fairy.")
 
-(defcustom clippy-art
-'(" __
-/  \\
-|  |
-@  @
-|| ||  <--
-|| ||
-|\\_/|
-\\___/     "
-  " __
-|  |@
-| @|
-|| ||
-|| ||  <--
-|`-´|
- \\_/
-          ")
-  "List of various clippy ascii arts. Should be formated to 8
+(defcustom navi-art
+'("                         
+ :::.                         
+ .:::.                        
+ ...:.  .                     
+   .:-#####:.       .......::.
+  .-#######=........:::::::..
+.:.########:.............   
+....######-. ..        
+   .:::---::::.               
+        .......               
+         .::.                 
+ ")
+  "List of various navi ascii arts. Should be formated to 8
 lines and 10 columns."
   :type '(repeat string)
-  :group 'clippy)
+  :group 'navi)
 
-(defcustom clippy-use-art 0
-  "Index to the `clippy-art' array for a clippy to use."
+(defcustom navi-use-art 0
+  "Index to the `navi-art' array for a navi to use."
   :type 'integer
-  :group 'clippy)
+  :group 'navi)
 
-(defcustom clippy-tip-show-function #'clippy-pos-tip-show
-  "Function to display clippy.
-There are two predefined function `clippy-pos-tip-show' and `clippy-popup-tip-show'."
-  :options '(#'clippy-pos-tip-show #'clippy-popup-tip-show)
+(defcustom navi-tip-show-function #'navi-pos-tip-show
+  "Function to display navi.
+There are two predefined function `navi-pos-tip-show' and `navi-popup-tip-show'."
+  :options '(#'navi-pos-tip-show #'navi-popup-tip-show)
   :type 'function
-  :group 'clippy)
+  :group 'navi)
 
 ;;;###autoload
-(defun clippy-say (text &optional fill)
-  "Display pop-up box with Clippy saying TEXT.
+(defun navi-say (text &optional fill)
+  "Display pop-up box with Navi saying TEXT.
 The box disappears after the next input event.
 
 If optional argument FILL is non-nil, the text is filled to 72
 columns."
-  (funcall clippy-tip-show-function (clippy-tip text fill)))
+  (funcall navi-tip-show-function (navi-tip text fill)))
 
-(defun clippy-tip (text &optional fill)
+(defun navi-tip (text &optional fill)
   (with-temp-buffer
      (insert text)
      (when fill
-       (let ((fill-column 72)) (clippy--fill-buffer))
+       (let ((fill-column 72)) (navi--fill-buffer))
        (setq text (buffer-string)))
-     (let* ((longest-line (clippy--get-longest-line (point-min) (point-max)))
+     (let* ((longest-line (navi--get-longest-line (point-min) (point-max)))
             (longest-line-margin (+ 2 longest-line))
             (real-lines (line-number-at-pos (point-max)))
             (lines (max 7 real-lines))
@@ -106,7 +102,7 @@ columns."
             ;; values in registers 'c' and 'd'
             (register-alist nil))
        (erase-buffer)
-       (insert (nth clippy-use-art clippy-art))
+       (insert (nth navi-use-art navi-art))
        (copy-rectangle-to-register ?c (point-min) (point-max) t)
        (erase-buffer)
        (insert text)
@@ -126,7 +122,7 @@ columns."
        (goto-char 3)
        (insert-register ?d) ; copy in the text
        (goto-char (point-min))
-       (insert-register ?c) ; copy in clippy
+       (insert-register ?c) ; copy in navi
        (goto-char 11)
        (delete-char 1)
        (insert "/")
@@ -142,67 +138,67 @@ columns."
          (insert "          "))
        (buffer-string))))
 
-(defun clippy-pos-tip-show (string)
+(defun navi-pos-tip-show (string)
   "Show STRING using pos-tip-show."
   (pos-tip-show string nil nil nil 0)
   (unwind-protect
       (push (read-event) unread-command-events)
     (pos-tip-hide)))
 
-(defun clippy-popup-tip-show (string)
+(defun navi-popup-tip-show (string)
   "Show STRING using popup-tip."
   (popup-tip string))
 
 
 ;;;###autoload
-(defun clippy-describe-function (function)
+(defun navi-describe-function (function)
   "Display the full documentation of FUNCTION (a symbol) in tooltip."
   (interactive (list (function-called-at-point)))
   (if (null function)
       (pos-tip-show
-       "** You didn't specify a function! **" '("red"))
-    (clippy-say (clippy--get-function-description function))))
+       "** Hey! You didn't specify a function! **" '("red"))
+    (navi-say (navi--get-function-description function))))
 
 ;;;###autoload
-(defun clippy-describe-variable (variable)
+(defun navi-describe-variable (variable)
   "Display the full documentation of VARIABLE (a symbol) in tooltip."
   (interactive (list (variable-at-point)))
   (if (null variable)
       (pos-tip-show
-       "** You didn't specify a variable! **" '("red"))
-    (clippy-say (clippy--get-variable-description variable))))
+       "** Watch out! You didn't specify a variable! **" '("red"))
+    (navi-say (navi--get-variable-description variable))))
 
 
 ;;;;; utility
-(defun clippy--fill-buffer ()
+(defun navi--fill-buffer ()
   (fill-region (point-min) (point-max)))
 
-(defun clippy--get-longest-line (begin end)
+(defun navi--get-longest-line (begin end)
   (interactive "r")
   (save-excursion
     (goto-char begin)
     (end-of-line)
-    (let ((mp (clippy--get-column)))
+    (let ((mp (navi--get-column)))
       (goto-char begin)
       (while (< (point) end)
         (end-of-line 2)
-        (let ((m (clippy--get-column)))
+        (let ((m (navi--get-column)))
           (when (> m mp) (setq mp m))))
       mp)))
 
-(defun clippy--get-column ()
+(defun navi--get-column ()
   (save-excursion
     (- (progn (end-of-line) (point)) (progn (beginning-of-line) (point)))))
 
 
 ;;;;; description functions
-(defun clippy--get-function-description (function)
+(defun navi--get-function-description (function)
   (with-temp-buffer
     (let ((standard-output (current-buffer))
           (help-xref-following t))
       (help-mode)
       (toggle-read-only -1)
-      (insert "It looks like you want to know more about function `")
+      (insert "Listen! It looks like you want to know more about function `")
       (prin1 function)
       (let ((fill-column 72)) (fill-paragraph))
       (insert "'.\n\n")
@@ -211,22 +207,22 @@ columns."
       (describe-function-1 function)
       (buffer-string))))
 
-(defun clippy--get-variable-description (variable)
+(defun navi--get-variable-description (variable)
   (with-temp-buffer
     (let ((standard-output (current-buffer))
           (help-xref-following t))
       (help-mode)
       (toggle-read-only -1)
-      (insert "It looks like you want to know more about variable `")
+      (insert "Hey! It looks like you want to know more about variable `")
       (prin1 variable)
       (insert "'.\n\n")
       (prin1 variable)
       (princ " is ")
       (save-window-excursion (describe-variable variable))
       (toggle-read-only -1)
-      (let ((fill-column 72)) (clippy--fill-buffer))
+      (let ((fill-column 72)) (navi--fill-buffer))
       (buffer-string))))
 
-(provide 'clippy)
+(provide 'navi)
 
-;;; clippy.el ends here
+;;; navi.el ends here
